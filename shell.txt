@@ -1,0 +1,71 @@
+python manage.py shell
+from student.models import Section, Teacher, Subject, Student
+
+
+fatih = Teacher(name='Fatih')
+osman = Teacher(name='Osman')
+
+python = Subject(name='Python Programalamaya Giriş', teacher=fatih)
+java = Subject(name='Java Programlamaya Giriş', teacher=fatih)
+js = Subject(name='Modern JavaScript Programlama', teacher=osman)
+
+python.save()
+java.save()
+js.save()
+
+
+KOD:
+fatih.subject_set.all()
+<QuerySet [<Subject: Python Programlamaya Giriş>, <Subject: Java ile Programlamaya Giriş>]>
+
+osman.subject_set.all()
+<QuerySet [<Subject: Modern Javascript Programlama>]>
+
+subject_set'in anlamı;
+ForeignKeyimize related_name vermezsek, default olarak classadı_set olarak alır.
+Bizim örneğimizde bu --> subject_set
+################################
+
+
+ybs = Section(name='Yönetim Bilişim Sistemleri')
+cmpeng = Section(name='Bilgisayar Mühendisliği')
+history = Section(name='Tarih')
+ybs.save()
+cmpeng.save()
+history.save()
+
+berke = Student(name='Berke Karataş', department=ybs, subject=java
+berke.save()
+ceyda = Student(name='Ceyda', department=ybs, subject=java)
+ceyda.save()
+furkan = Student(name='Furkan', department=cmpeng, subject=javascript)
+furkan.save()
+
+KOD:
+js.student_set.all()
+<QuerySet [<Student: Furkan>]>
+java.student_set.all()
+<QuerySet [<Student: Berke>, <Student: Ceyda>]>
+ybs.student_set.all()
+<QuerySet [<Student: Berke>, <Student: Ceyda>]>
+cmpeng.student_set.all()
+<QuerySet [<Student: Furkan>]>
+################################
+
+models.py içerisinde değişiklik;
+- department
+department = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='student_department')
+
+Yeni bir terminalde, shell açalım.
+modelimizin içindeki classları import edelim
+ybs = Section.object.get(pk=1)
+ybs.student_department.all()
+<QuerySet [<Student: Berke>, <Student: Ceyda>]>
+
+## related_name verilmemiş bir değerde default olarak modelname_set --> subject_set
+fatih = Teacher.objects.get(name='Fatih')
+fatih.subject_set.all()
+<QuerySet [<Subject: Python Programlamaya Giriş>, <Subject: Java ile Programlamaya Giriş>]>
+
+
+
