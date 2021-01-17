@@ -1,0 +1,117 @@
+#############################################################################
+
+from modelrelation.models import Language, Framework
+
+
+python = Language(name='Python')
+python.save()
+django = Framework(name='Django', language=python)
+django.save()
+flask = Framework(name='Flask')
+flask.language = python
+
+java = Language(name='Java')
+java.save()
+spring = Framework(name='Spring', language=java)
+spring.save()
+
+
+Framework.objects.all()
+<QuerySet [<Framework: Django>, <Framework: Flask>, <Framework: Spring>]>
+
+Language.objects.all()
+<QuerySet [<Language: Python>, <Language: Java>]>
+
+
+Framework.objects.filter(language__name='Python')
+<QuerySet [<Framework: Django>, <Framework: Flask>]>
+Framework.objects.filter(language=python)
+<QuerySet [<Framework: Django>, <Framework: Flask>]>
+Framework.objects.filter(language=java)
+<QuerySet [<Framework: Spring>]>
+
+Framework.objects.filter(language__name__startswith='Py')
+<QuerySet [<Framework: Django>, <Framework: Flask>]>
+Framework.objects.filter(language__name__startswith='Ru')
+<QuerySet []>
+
+Language.objects.filter(framework__name='Django')
+<QuerySet [<Language: Python>]>
+
+
+## Bağlantılı ##
+python = Language.objects.get(framework__name='Django')
+python
+<Language: Python>
+frameworks = Framework.objects.filter(language=python)
+frameworks
+<QuerySet [<Framework: Django>, <Framework: Flask>]>
+
+
+
+#############################################################################
+
+sqlite açalım ve ManyToManyField özelliğini kullandığımız için ekstra 1 tablo
+daha oluşturulduğunu görelim. Tablolar:
+modelrelation_character_movies ( movies --> Character class field name )
+modelrelation_character
+modelrelation_movie
+
+
+from modelrelation.models import Movie, Character
+
+catchme = Movie(name='Sıkıysa Yakala')
+hollywood = Movie(name="Bir Zamanlar Hollywood'da")
+gump = Movie(name='Forrest Gump')
+catchme.save()
+hollywood.save()
+gump.save()
+
+bradpitt = Character(name='Brad Pitt')
+dicaprio = Character(name='Leonardo Di Caprio')
+tomhanks = Character(name='Tom Hanks')
+bradpitt.save()
+dicaprio.save()
+tomhanks.save()
+
+bradpitt.movies.add(hollywood) [ modelrelation_character_movies eklendi ]
+dicaprio.movies.add(hollywood)
+dicaprio.movies.add(catchme)
+tomhanks.movies.add(gump)
+tomhanks.movies.add(catchme)
+
+
+#### ÖNEMLİ #### 
+Karakter üzerinden movies.create yaparak yeni bir Film oluşturma:
+
+bradpitt.movies.create(name='Truva')
+<Movie: Truva>
+
+[ modelrelation_movie tablosuna Truva eklendi ]
+[ modelrelation_character_movies eklendi ]
+
+
+Character.objects.filter(movies__name='Truva')
+<QuerySet [<Character: Brad Pitt>]>
+Character.objects.filter(movies=catchme)
+<QuerySet [<Character: Leonardo Di Caprio>, <Character: Tom Hanks>]>
+
+
+Movie.objects.filter(character__name='Brad Pitt')
+<QuerySet [<Movie: Bir Zamanlar Hollywood'da>, <Movie: Truva>]>
+Movie.objects.filter(character=tomhanks)
+<QuerySet [<Movie: Sıkıysa Yakala>, <Movie: Forrest Gump>]>
+
+
+dicaprio_ = Character.objects.get(name=dicaprio)
+dicaprio_
+<Character: Leonardo Di Caprio>
+dicaprio_.movies.all()
+<QuerySet [<Movie: Sıkıysa Yakala>, <Movie: Bir Zamanlar Hollywood'da>]>
+
+
+catchme_ = Movie.objects.get(name=catchme)
+catchme_
+<Movie: Sıkıysa Yakala>
+catchme_.character_set.all() [ character_set --> default related_name ]
+<QuerySet [<Character: Leonardo Di Caprio>, <Character: Tom Hanks>]>
